@@ -1,3 +1,15 @@
+function postProxy(a, b, callback) {
+	var datastring = ((a.split('?').length - 1 > 0) ? "&" : "?") + "post=";
+	for (var i in b) datastring += escape(i) + "|";
+	$.post(a + datastring, b, callback);
+}
+function getProxy(ab, callback) {
+	$.get(ab, callback);
+}
+
+var $link = $('<link rel="stylesheet" href="/js/style.css" />');
+$('head').append($link);
+
 (function ($) {
 
 	Config.sockjsprefix = '/showdown';
@@ -189,7 +201,7 @@
 		 * domain in order to have access to the correct cookies.
 		 */
 		getActionPHP: function () {
-			var ret = '/~~' + Config.server.id + '/action.php';
+			var ret = '/action.php';
 			if (Config.testclient) {
 				ret = 'https://' + Config.origindomain + ret;
 			}
@@ -266,7 +278,7 @@
 
 			if (this.get('userid') !== userid) {
 				var self = this;
-				$.post(this.getActionPHP(), {
+				postProxy(this.getActionPHP(), {
 					act: 'getassertion',
 					userid: userid,
 					challstr: this.challstr
@@ -279,7 +291,7 @@
 		},
 		passwordRename: function (name, password, special) {
 			var self = this;
-			$.post(this.getActionPHP(), {
+			postProxy(this.getActionPHP(), {
 				act: 'login',
 				name: name,
 				pass: password,
@@ -320,7 +332,7 @@
 				 */
 				this.challstr = challstr;
 				var self = this;
-				$.post(this.getActionPHP(), {
+				postProxy(this.getActionPHP(), {
 					act: 'upkeep',
 					challstr: this.challstr
 				}, Tools.safeJSON(function (data) {
@@ -347,7 +359,7 @@
 		 * Log out from the server (but remain connected as a guest).
 		 */
 		logout: function () {
-			$.post(this.getActionPHP(), {
+			postProxy(this.getActionPHP(), {
 				act: 'logout',
 				userid: this.get('userid')
 			});
@@ -919,7 +931,7 @@
 
 				var userid = toUserid(name);
 				if (userid === this.user.get('userid') && name !== this.user.get('name')) {
-					$.post(app.user.getActionPHP(), {
+					postProxy(app.user.getActionPHP(), {
 						act: 'changeusername',
 						username: name
 					}, function () {}, 'text');
@@ -1198,7 +1210,7 @@
 			var id = data.id;
 			var serverid = Config.server.id && toId(Config.server.id.split(':')[0]);
 			if (serverid && serverid !== 'showdown') id = serverid + '-' + id;
-			$.post(app.user.getActionPHP() + '?act=uploadreplay', {
+			postProxy(app.user.getActionPHP() + '?act=uploadreplay', {
 				log: data.log,
 				id: id
 			}, function (data) {
